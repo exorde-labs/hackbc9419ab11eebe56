@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="hackbc9419ab11eebe56",
-    version="0.0.1",
+    version="0.0.11",
     packages=find_packages(),
     install_requires=[
         "lxml",
