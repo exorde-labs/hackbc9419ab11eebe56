@@ -145,7 +145,7 @@ def read_parameters(parameters):
     return max_oldness_seconds, maximum_items_to_collect, min_post_length
 
 
-async def query(parameters: dict) -> AsyncGenerator[Comment, None]:
+async def query(parameters: dict) -> AsyncGenerator[Item, None]:
     hacker_news_URL = 'https://news.ycombinator.com/newcomments'
     logging.info(f"[Hackernews] Scraping latest posts & comments on {hacker_news_URL}")
     data = await request_entries_with_timeout(hacker_news_URL)
