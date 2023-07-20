@@ -22,6 +22,7 @@ from exorde_data import (
 )
 
 ################################
+base_url = "https://news.ycombinator.com/"
 # default values
 DEFAULT_OLDNESS_SECONDS = 120
 DEFAULT_MAXIMUM_ITEMS = 25
@@ -29,10 +30,11 @@ DEFAULT_MIN_POST_LENGTH = 10
 
 class Comment:
 
-    def __init__(self, _user_name, _date_time, _link_thread, _title_thread, _comment, _user_id, _parent_user_id):
+    def __init__(self, _user_name, _date_time, _link_thread, comment_link, _title_thread, _comment, _user_id, _parent_user_id):
         self.user_name = _user_name
         self.date_time = _date_time
         self.link_thread = _link_thread
+        self.comment_link = comment_link
         self.title_thread = _title_thread
         self.text = _comment
         self.user_id = _user_id
@@ -105,17 +107,18 @@ def convert_to_standard_timezone(_date):
 async def parse_entry_for_elements(_athing):
     try:
         user_name = _athing.find("a", {"class": "hnuser"}).text        
-        external_id = _athing['id']
+        comment_url = base_url +_athing.find("span", {"class": "age"}).find("a")["href"]
+        external_id = comment_url.split("?id=")[-1]
         date_time = convert_to_standard_timezone(_athing.find("span", {"class": "age"})["title"])
 
         blob = _athing.find("span", {"class": "onstory"}).find("a")
-        link_thread = "https://news.ycombinator.com/" + blob["href"]
+        link_thread = base_url + blob["href"]
         external_parent_id = link_thread.split("?id=")[-1]
         link_title = await request_title_with_timeout(link_thread)
 
-        text = _athing.find("span", {"class": "commtext c00"}).text
+        text = link_title + ". "+_athing.find("span", {"class": "commtext c00"}).text
 
-        return Comment(user_name, date_time, link_thread, link_title, text, external_id, external_parent_id)
+        return Comment(user_name, date_time, link_thread, comment_url, link_title, text, external_id, external_parent_id)
     except Exception as e:
         logging.info("[Hackernews] Parsing Error:" + str(e))
 
@@ -179,10 +182,11 @@ async def query(parameters: dict) -> AsyncGenerator[Item, None]:
                 created_at=CreatedAt(comment.date_time),
                 title=Title(comment.title_thread),
                 domain=Domain("news.ycombinator.com"),
-                url=Url(comment.link_thread),
-                external_id=ExternalId(comment.link_thread),
-                external_parent_id=ExternalParentId(comment.link_thread)
+                url=Url(comment.comment_link),
+                external_id=ExternalId(comment.user_id),
+                external_parent_id=ExternalParentId(comment.user_parent_id)
             )
+            print(new_item)
             yielded_items += 1  # Increment the counter for yielded items
             yield new_item
         else:
