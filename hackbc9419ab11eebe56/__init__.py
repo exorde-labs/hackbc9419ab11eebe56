@@ -116,7 +116,9 @@ async def parse_entry_for_elements(_athing):
         external_parent_id = link_thread.split("?id=")[-1]
         link_title = await request_title_with_timeout(link_thread)
 
-        text = link_title + ". "+_athing.find("span", {"class": "commtext c00"}).text
+        text = _athing.find("div", {"class": "commtext c00"}).text  
+        # add title without special characters to text
+        text += " " + link_title
 
         return Comment(user_name, date_time, link_thread, comment_url, link_title, text, external_id, external_parent_id)
     except Exception as e:
