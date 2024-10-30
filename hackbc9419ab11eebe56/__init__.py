@@ -94,13 +94,20 @@ async def request_entries_with_timeout(_url):
     except Exception as e:
         logging.info(f"[Hackernews] Error request: {str(e)}")
 
+
+def clean_date_string(date_string):
+    return date_string.split()[0]
+
 def convert_to_standard_timezone(_date):
     """
     Takes an unparsed date and normalizes it
     :param _date: Unparsed date that we need to convert to standard timezone format
     :return: Standardized date format
     """
-    dt = parser.parse(_date)  # parse date so we can exploit its data (can't use fuzzy param here to avoid false negatives)
+    #  2024-10-30T17:06:43 1730308003 remove the last digits to make it parsable
+    # remove to keep only "2024-10-30T17:06:43" out of original "2024-10-30T17:06:43 1730308003"
+    date = clean_date_string(_date)
+    dt = parser.parse(date)  # parse date so we can exploit its data (can't use fuzzy param here to avoid false negatives)
     return dt.strftime("%Y-%m-%dT%H:%M:%S.00Z")
 
 
